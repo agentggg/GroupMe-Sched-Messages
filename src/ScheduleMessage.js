@@ -36,7 +36,7 @@ export default function ScheduleMessage() {
         setGroups(formattedGroups)
         // the useState value that will be passed down
       } catch (err) {
-        console.error("❌ Error fetching groups:", err.response?.data || err.message);
+        console.log("❌ Error fetching groups:", err.response?.data || err.message);
       }
       // error handling
     }
@@ -79,15 +79,19 @@ export default function ScheduleMessage() {
       const res = await axios.post(url, payload)
       if (typeof(res.data.id) == "number"){
         setStatus('Successfully Scheudled Message')
+        setTextToSend('Successfully Scheudled Message')
         alert("Successfully Scheudled Message")
-        textToSend("")
+        return
       }
       else{
         setStatus('Failed to schedule')
+        console.log(res)
+        return
       }
     } catch (err) {
       setStatus('Failed to schedule')
-      console.error("❌ Error sending message:", err.response?.data || err.message);
+      console.log("❌ Error sending message:", err);
+      return
     }
   }
 
@@ -116,7 +120,7 @@ export default function ScheduleMessage() {
         }}
       >
         {/* Left: Brand */}
-        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>MyApp</div>
+        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech and Faith</div>
 
         {/* Hamburger (mobile only) */}
         <button
