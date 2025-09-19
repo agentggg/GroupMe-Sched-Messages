@@ -23,6 +23,12 @@ export default function App() {
           element={
             authenticated ? <ScheduleMessage /> : <Login />
           } />
+
+        <Route 
+          path="/messages" 
+          element={
+            authenticated ? <Messages /> : <Login />
+          } />
           </Routes>
     </LoginContext.Provider>
 

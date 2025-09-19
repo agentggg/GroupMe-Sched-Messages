@@ -1,9 +1,14 @@
+// Messages.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import Logout from "./Logout";
 
 export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [username] = useState("agentofgod"); // 🔹 Replace with real user later
   const [formData, setFormData] = useState({
     id: "",
     group_id: "",
@@ -46,8 +51,7 @@ export default function Messages() {
   async function updateMessage(e) {
     e.preventDefault();
     try {
-      const res = await axios.put(`${apiUrl}/scheduled_messages_update`, formData);
-      console.log("✅ Updated:", res.data);
+      await axios.put(`${apiUrl}/scheduled_messages_update`, formData);
       setEditing(null);
       fetchMessages();
     } catch (err) {
@@ -66,141 +70,196 @@ export default function Messages() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: "900px",
-        margin: "40px auto",
-        padding: "20px",
-        fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-      }}
-    >
-      <h2
+    <>
+      {/* NAVBAR */}
+      <nav
         style={{
-          fontSize: "28px",
-          fontWeight: "700",
-          marginBottom: "24px",
-          color: "#222",
-          textAlign: "center",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "12px 20px",
+          backgroundColor: "#007acc",
+          color: "white",
+          position: "sticky",
+          top: 0,
+          zIndex: 1000,
         }}
       >
-        📩 Scheduled Messages
-      </h2>
+        {/* Left: Brand */}
+        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech and Faith</div>
 
-      {messages.length === 0 && (
-        <p style={{ textAlign: "center", color: "#777" }}>No scheduled messages yet.</p>
-      )}
+        {/* Logout Button */}
+        <Logout />
 
-      {messages.map((msg) => (
-        <div
-          key={msg.id}
+        {/* Hamburger (mobile only) */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
           style={{
-            background: "#fff",
-            borderRadius: "12px",
-            padding: "20px",
-            marginBottom: "16px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
-            transition: "all 0.2s ease",
+            background: "none",
+            border: "none",
+            color: "white",
+            fontSize: "1.5rem",
+            cursor: "pointer",
+            display: "none",
           }}
+          className="hamburger"
         >
-          {editing === msg.id ? (
-            <form onSubmit={updateMessage} style={{ display: "grid", gap: "12px" }}>
-              <input type="hidden" name="id" value={formData.id} />
+          ☰
+        </button>
 
-              <input
-                name="group_name"
-                value={formData.group_name}
-                onChange={handleChange}
-                placeholder="Group Name"
-                style={inputStyle}
-              />
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="Message"
-                style={{ ...inputStyle, height: "80px", resize: "none" }}
-              />
-              <div className="message-form-row" style={{ display: "flex", gap: "12px" }}>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  style={inputStyle}
-                />
-                <input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  style={inputStyle}
-                />
-              </div>
-
-              <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <input
-                  type="checkbox"
-                  name="sent"
-                  checked={formData.sent}
-                  onChange={handleChange}
-                />
-                <span style={{ fontSize: "14px", color: "#444" }}>Mark as Sent</span>
-              </label>
-
-              <div className="message-buttons" style={{ display: "flex", gap: "10px" }}>
-                <button type="submit" style={buttonPrimary}>
-                  💾 Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditing(null)}
-                  style={buttonSecondary}
-                >
-                  ❌ Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <h3 style={{ margin: "0 0 6px", color: "#007acc" }}>{msg.group_name}</h3>
-              <p style={{ margin: "0 0 8px", fontSize: "15px", color: "#333" }}>
-                {msg.message}
-              </p>
-              <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#666" }}>
-                📅 {msg.date} ⏰ {msg.time}
-              </p>
-              <p style={{ fontSize: "14px", color: msg.sent ? "#28a745" : "#d9534f" }}>
-                Sent: {msg.sent ? "✅ Yes" : "❌ No"}
-              </p>
-
-              <div className="message-buttons" style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-                <button onClick={() => startEdit(msg)} style={buttonPrimary}>
-                  ✏️ Edit
-                </button>
-                <button onClick={() => deleteMessage(msg.id)} style={buttonDanger}>
-                  🗑️ Delete
-                </button>
-              </div>
-            </>
+        {/* Nav Links */}
+        <div
+          style={{ display: menuOpen ? "flex" : "" }}
+          className="nav-links"
+        >
+          <Link to="/" style={{ color: "white", textDecoration: "none", marginRight: "16px" }}>
+            Home
+          </Link>
+          {username === "agentofgod" && (
+            <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>
+              Messages
+            </Link>
           )}
         </div>
-      ))}
+      </nav>
 
-      {/* 🔹 Responsive CSS */}
-      <style>{`
-        @media (max-width: 600px) {
-          .message-form-row {
-            flex-direction: column;
+      {/* CONTENT */}
+      <div
+        style={{
+          maxWidth: "900px",
+          margin: "40px auto",
+          padding: "20px",
+          fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "28px",
+            fontWeight: "700",
+            marginBottom: "24px",
+            color: "#222",
+            textAlign: "center",
+          }}
+        >
+          📩 Scheduled Messages
+        </h2>
+
+        {messages.length === 0 && (
+          <p style={{ textAlign: "center", color: "#777" }}>No scheduled messages yet.</p>
+        )}
+
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "16px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {editing === msg.id ? (
+              <form onSubmit={updateMessage} style={{ display: "grid", gap: "12px" }}>
+                <input type="hidden" name="id" value={formData.id} />
+
+                <input
+                  name="group_name"
+                  value={formData.group_name}
+                  onChange={handleChange}
+                  placeholder="Group Name"
+                  style={inputStyle}
+                />
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Message"
+                  style={{ ...inputStyle, height: "80px", resize: "none" }}
+                />
+                <div className="message-form-row" style={{ display: "flex", gap: "12px" }}>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    style={inputStyle}
+                  />
+                  <input
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <input
+                    type="checkbox"
+                    name="sent"
+                    checked={formData.sent}
+                    onChange={handleChange}
+                  />
+                  <span style={{ fontSize: "14px", color: "#444" }}>Mark as Sent</span>
+                </label>
+
+                <div className="message-buttons" style={{ display: "flex", gap: "10px" }}>
+                  <button type="submit" style={buttonPrimary}>
+                    💾 Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(null)}
+                    style={buttonSecondary}
+                  >
+                    ❌ Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <h3 style={{ margin: "0 0 6px", color: "#007acc" }}>{msg.group_name}</h3>
+                <p style={{ margin: "0 0 8px", fontSize: "15px", color: "#333" }}>
+                  {msg.message}
+                </p>
+                <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#666" }}>
+                  📅 {msg.date} ⏰ {msg.time}
+                </p>
+                <p style={{ fontSize: "14px", color: msg.sent ? "#28a745" : "#d9534f" }}>
+                  Sent: {msg.sent ? "✅ Yes" : "❌ No"}
+                </p>
+
+                <div className="message-buttons" style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
+                  <button onClick={() => startEdit(msg)} style={buttonPrimary}>
+                    ✏️ Edit
+                  </button>
+                  <button onClick={() => deleteMessage(msg.id)} style={buttonDanger}>
+                    🗑️ Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+
+        {/* 🔹 Responsive CSS */}
+        <style>{`
+          @media (max-width: 600px) {
+            .message-form-row {
+              flex-direction: column;
+            }
+            .message-buttons {
+              flex-direction: column;
+            }
+            .message-buttons button {
+              width: 100%;
+            }
           }
-          .message-buttons {
-            flex-direction: column;
-          }
-          .message-buttons button {
-            width: 100%;
-          }
-        }
-      `}</style>
-    </div>
+        `}</style>
+      </div>
+    </>
   );
 }
 

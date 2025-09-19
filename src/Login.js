@@ -17,7 +17,6 @@ export default function Login() {
   }
  
     const login_request = async() => {
-        console.log(username)
         try{
         const response = await axios.post("https://raw-agentofgod.pythonanywhere.com/login_verification",{
         // const response = await axios.post("http://127.0.0.1:8000/login_verification",{
