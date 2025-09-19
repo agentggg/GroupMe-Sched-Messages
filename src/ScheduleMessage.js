@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom"; // only Link, no Router
+import Logout from "./Logout";
 
 export default function ScheduleMessage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -95,6 +96,10 @@ export default function ScheduleMessage() {
     }
   }
 
+    const [username, setUsername] = useState('')
+    useEffect(()=>{
+      setUsername(localStorage.getItem('username'))
+    }, [username])
   return (
     <div
       style={{
@@ -121,7 +126,7 @@ export default function ScheduleMessage() {
       >
         {/* Left: Brand */}
         <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech and Faith</div>
-
+        <Logout />
         {/* Hamburger (mobile only) */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -146,15 +151,9 @@ export default function ScheduleMessage() {
           <Link to="/" style={{ color: "white", textDecoration: "none" }}>
             Home
           </Link>
-          <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>
+          {username === "agentofgod" ? <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>
             Messages
-          </Link>
-          <Link
-            to="/contact"
-            style={{ color: "white", textDecoration: "none" }}
-          >
-            Contact
-          </Link>
+          </Link> : <></>}
         </div>
       </nav>
 
