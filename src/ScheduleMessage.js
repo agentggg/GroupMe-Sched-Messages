@@ -125,7 +125,7 @@ export default function ScheduleMessage() {
         }}
       >
         {/* Left: Brand */}
-        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech and Faith</div>
+        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech & Faith</div>
         <Logout />
         {/* Hamburger (mobile only) */}
         <button

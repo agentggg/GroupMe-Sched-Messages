@@ -6,6 +6,7 @@ import Logout from "./Logout";
 
 export default function Messages() {
   const [messages, setMessages] = useState([]);
+  console.log("🚀 ~ Messages ~ messages:", messages)
   const [editing, setEditing] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [username] = useState("agentofgod"); // 🔹 Replace with real user later
@@ -86,7 +87,7 @@ export default function Messages() {
         }}
       >
         {/* Left: Brand */}
-        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech and Faith</div>
+        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech & Faith</div>
 
         {/* Logout Button */}
         <Logout />
@@ -230,7 +231,9 @@ export default function Messages() {
                 <p style={{ fontSize: "14px", color: msg.sent ? "#28a745" : "#d9534f" }}>
                   Sent: {msg.sent ? "✅ Yes" : "❌ No"}
                 </p>
-
+                <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#666" }}>
+                  📅 {msg.first_name} {msg.last_name}
+                </p>
                 <div className="message-buttons" style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
                   <button onClick={() => startEdit(msg)} style={buttonPrimary}>
                     ✏️ Edit

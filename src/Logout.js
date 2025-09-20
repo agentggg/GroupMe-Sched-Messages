@@ -8,7 +8,6 @@ export default function Logout() {
   const handleLogout = () => {
     // Clear auth state (and any tokens if needed)
     setAuthenticated(false);
-
     // Redirect to login page (default: /login)
   };
 
