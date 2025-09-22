@@ -64,8 +64,8 @@ export default function ScheduleMessage() {
     }
 
     // this forces the user to always place a message, or else it will send an alert
-    const url = `https://raw-agentofgod.pythonanywhere.com/scheduled_messages_list` // this is the base URL
-    // const url = `https://api.groupme.com/v3/groups/${selectedGroup.id}/messages?token=${token}`;
+    // const url = `https://raw-agentofgod.pythonanywhere.com/scheduled_messages_list` // this is the base URL
+    const url = `http://127.0.0.1:8000/scheduled_messages_list`;
     const payload = {
         message: textToSend,
         username: 1,
@@ -74,6 +74,7 @@ export default function ScheduleMessage() {
         date: dateSelection,
         time: timeSelection
     };
+    console.log("🚀 ~ sendMessage ~ payload:", payload)
     // this is the payload from the frontend that we will send to the backend
 
     try {
