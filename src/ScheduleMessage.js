@@ -11,6 +11,7 @@ export default function ScheduleMessage() {
   const [selectedGroup, setSelectedGroup] = useState("");
   const [textToSend, setTextToSend] = useState("");
   const [username, setUsername] = useState('')
+  console.log("🚀 ~ ScheduleMessage ~ username:", username)
   useEffect(()=>{
       setUsername(localStorage.getItem('username'))
     }, [username])
