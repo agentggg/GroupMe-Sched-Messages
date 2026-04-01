@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/GroupMe-Sched-Messages/static/css/main.6ad5cc4f.css",
+    "main.css": "/GroupMe-Sched-Messages/static/css/main.0508d6b8.css",
     "main.js": "/GroupMe-Sched-Messages/static/js/main.7e1a72cf.js",
     "static/js/453.c68eb2ec.chunk.js": "/GroupMe-Sched-Messages/static/js/453.c68eb2ec.chunk.js",
     "index.html": "/GroupMe-Sched-Messages/index.html",
-    "main.6ad5cc4f.css.map": "/GroupMe-Sched-Messages/static/css/main.6ad5cc4f.css.map",
+    "main.0508d6b8.css.map": "/GroupMe-Sched-Messages/static/css/main.0508d6b8.css.map",
     "main.7e1a72cf.js.map": "/GroupMe-Sched-Messages/static/js/main.7e1a72cf.js.map",
     "453.c68eb2ec.chunk.js.map": "/GroupMe-Sched-Messages/static/js/453.c68eb2ec.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.6ad5cc4f.css",
+    "static/css/main.0508d6b8.css",
     "static/js/main.7e1a72cf.js"
   ]
 }
