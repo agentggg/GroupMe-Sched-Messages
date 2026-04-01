@@ -1,15 +1,15 @@
-// Messages.js
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Logout from "./Logout";
+import { API_BASE_URL } from "./api";
 
 export default function Messages() {
   const [messages, setMessages] = useState([]);
-  console.log("🚀 ~ Messages ~ messages:", messages)
   const [editing, setEditing] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [username] = useState("agentofgod"); // 🔹 Replace with real user later
+  const [loading, setLoading] = useState(true);
+  const [pageStatus, setPageStatus] = useState("");
+  const [username] = useState(localStorage.getItem("username") || "");
   const [formData, setFormData] = useState({
     id: "",
     group_id: "",
@@ -21,290 +21,234 @@ export default function Messages() {
     username: "",
   });
 
-  const apiUrl = "https://raw-agentofgod.pythonanywhere.com"; // backend URL
+  const fetchMessages = useCallback(async () => {
+    try {
+      setLoading(true);
+      const query = username ? `?username=${encodeURIComponent(username)}` : "";
+      const response = await axios.get(
+        `${API_BASE_URL}/scheduled_messages_list${query}`
+      );
+      setMessages(Array.isArray(response.data) ? response.data : []);
+      setPageStatus("");
+    } catch (err) {
+      setPageStatus("Unable to load scheduled messages.");
+    } finally {
+      setLoading(false);
+    }
+  }, [username]);
 
   useEffect(() => {
     fetchMessages();
-  }, []);
-
-  async function fetchMessages() {
-    try {
-      const res = await axios.get(`${apiUrl}/scheduled_messages_list`);
-      setMessages(res.data);
-    } catch (err) {
-      console.error("❌ Error fetching messages:", err);
-    }
-  }
+  }, [fetchMessages]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((current) => ({
+      ...current,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
   };
 
   const startEdit = (msg) => {
     setEditing(msg.id);
-    setFormData(msg);
+    setFormData({
+      id: msg.id,
+      group_id: msg.group_id || "",
+      group_name: msg.group_name || "",
+      message: msg.message || "",
+      date: msg.date || "",
+      time: msg.time || "",
+      sent: Boolean(msg.sent),
+      username: msg.username_value || msg.username || username,
+    });
   };
 
   async function updateMessage(e) {
     e.preventDefault();
     try {
-      await axios.put(`${apiUrl}/scheduled_messages_update`, formData);
+      await axios.put(`${API_BASE_URL}/scheduled_messages_update`, formData);
       setEditing(null);
+      setPageStatus("Message updated.");
       fetchMessages();
     } catch (err) {
-      console.error("❌ Error updating:", err.response?.data || err.message);
+      setPageStatus(err.response?.data?.error || "Unable to update message.");
     }
   }
 
   async function deleteMessage(id) {
-    if (!window.confirm("Delete this message?")) return;
+    if (!window.confirm("Delete this message?")) {
+      return;
+    }
+
     try {
-      await axios.delete(`${apiUrl}/scheduled_messages_delete/${id}/`);
+      await axios.delete(`${API_BASE_URL}/scheduled_messages_delete/${id}`);
+      setPageStatus("Message deleted.");
       fetchMessages();
     } catch (err) {
-      console.error("❌ Error deleting:", err.response?.data || err.message);
+      setPageStatus(err.response?.data?.error || "Unable to delete message.");
     }
   }
 
   return (
-    <>
-      {/* NAVBAR */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          backgroundColor: "#007acc",
-          color: "white",
-          position: "sticky",
-          top: 0,
-          zIndex: 1000,
-        }}
-      >
-        {/* Left: Brand */}
-        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech & Faith</div>
-
-        {/* Logout Button */}
-        <Logout />
-
-        {/* Hamburger (mobile only) */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            fontSize: "1.5rem",
-            cursor: "pointer",
-            display: "none",
-          }}
-          className="hamburger"
-        >
-          ☰
-        </button>
-
-        {/* Nav Links */}
-        <div
-          style={{ display: menuOpen ? "flex" : "" }}
-          className="nav-links"
-        >
-          <Link to="/" style={{ color: "white", textDecoration: "none", marginRight: "16px" }}>
-            Home
+    <div className="app-shell">
+      <nav className="topbar">
+        <div>
+          <p className="eyebrow">Tech & Faith</p>
+          <h1 className="topbar-title">Scheduled messages</h1>
+        </div>
+        <div className="topbar-actions">
+          <Link to="/" className="nav-link">
+            Scheduler
           </Link>
           {username === "agentofgod" && (
-            <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>
+            <Link to="/messages" className="nav-link active-link">
               Messages
             </Link>
           )}
+          <Logout />
         </div>
       </nav>
 
-      {/* CONTENT */}
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "40px auto",
-          padding: "20px",
-          fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "28px",
-            fontWeight: "700",
-            marginBottom: "24px",
-            color: "#222",
-            textAlign: "center",
-          }}
-        >
-          📩 Scheduled Messages
-        </h2>
-
-        {messages.length === 0 && (
-          <p style={{ textAlign: "center", color: "#777" }}>No scheduled messages yet.</p>
-        )}
-
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            style={{
-              background: "#fff",
-              borderRadius: "12px",
-              padding: "20px",
-              marginBottom: "16px",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {editing === msg.id ? (
-              <form onSubmit={updateMessage} style={{ display: "grid", gap: "12px" }}>
-                <input type="hidden" name="id" value={formData.id} />
-
-                <input
-                  name="group_name"
-                  value={formData.group_name}
-                  onChange={handleChange}
-                  placeholder="Group Name"
-                  style={inputStyle}
-                />
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Message"
-                  style={{ ...inputStyle, height: "80px", resize: "none" }}
-                />
-                <div className="message-form-row" style={{ display: "flex", gap: "12px" }}>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    style={inputStyle}
-                  />
-                  <input
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    style={inputStyle}
-                  />
-                </div>
-
-                <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <input
-                    type="checkbox"
-                    name="sent"
-                    checked={formData.sent}
-                    onChange={handleChange}
-                  />
-                  <span style={{ fontSize: "14px", color: "#444" }}>Mark as Sent</span>
-                </label>
-
-                <div className="message-buttons" style={{ display: "flex", gap: "10px" }}>
-                  <button type="submit" style={buttonPrimary}>
-                    💾 Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditing(null)}
-                    style={buttonSecondary}
-                  >
-                    ❌ Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <h3 style={{ margin: "0 0 6px", color: "#007acc" }}>{msg.group_name}</h3>
-                <p style={{ margin: "0 0 8px", fontSize: "15px", color: "#333" }}>
-                  {msg.message}
-                </p>
-                <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#666" }}>
-                  📅 {msg.date} ⏰ {msg.time}
-                </p>
-                <p style={{ fontSize: "14px", color: msg.sent ? "#28a745" : "#d9534f" }}>
-                  Sent: {msg.sent ? "✅ Yes" : "❌ No"}
-                </p>
-                <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#666" }}>
-                  📅 {msg.first_name} {msg.last_name}
-                </p>
-                <div className="message-buttons" style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-                  <button onClick={() => startEdit(msg)} style={buttonPrimary}>
-                    ✏️ Edit
-                  </button>
-                  <button onClick={() => deleteMessage(msg.id)} style={buttonDanger}>
-                    🗑️ Delete
-                  </button>
-                </div>
-              </>
-            )}
+      <main className="panel-stack">
+        <section className="panel panel-emphasis">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Queue</p>
+              <h2>Review and edit scheduled deliveries</h2>
+            </div>
+            <span className="status-pill">
+              {loading ? "Loading..." : `${messages.length} message(s)`}
+            </span>
           </div>
-        ))}
 
-        {/* 🔹 Responsive CSS */}
-        <style>{`
-          @media (max-width: 600px) {
-            .message-form-row {
-              flex-direction: column;
-            }
-            .message-buttons {
-              flex-direction: column;
-            }
-            .message-buttons button {
-              width: 100%;
-            }
-          }
-        `}</style>
-      </div>
-    </>
+          {pageStatus && <p className="page-status">{pageStatus}</p>}
+
+          {!loading && messages.length === 0 && (
+            <p className="placeholder-text">No scheduled messages yet.</p>
+          )}
+
+          <div className="message-list">
+            {messages.map((msg) => (
+              <article key={msg.id} className="message-card">
+                {editing === msg.id ? (
+                  <form onSubmit={updateMessage} className="edit-form">
+                    <input type="hidden" name="id" value={formData.id} />
+
+                    <input
+                      name="group_id"
+                      value={formData.group_id}
+                      onChange={handleChange}
+                      placeholder="Group ID"
+                      className="text-input"
+                    />
+                    <input
+                      name="group_name"
+                      value={formData.group_name}
+                      onChange={handleChange}
+                      placeholder="Group Name"
+                      className="text-input"
+                    />
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Message"
+                      className="text-input text-area compact-text-area"
+                    />
+                    <div className="form-grid two-up">
+                      <input
+                        type="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleChange}
+                        className="text-input"
+                      />
+                      <input
+                        type="time"
+                        name="time"
+                        value={formData.time}
+                        onChange={handleChange}
+                        className="text-input"
+                      />
+                    </div>
+
+                    <label className="checkbox-row">
+                      <input
+                        type="checkbox"
+                        name="sent"
+                        checked={formData.sent}
+                        onChange={handleChange}
+                      />
+                      <span>Mark as Sent</span>
+                    </label>
+
+                    <div className="button-row">
+                      <button type="submit" className="primary-button">
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(null)}
+                        className="secondary-button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="message-card-header">
+                      <div>
+                        <h3>{msg.group_name}</h3>
+                        <p className="meta-text">Group ID: {msg.group_id}</p>
+                      </div>
+                      <span
+                        className={`approval-chip ${
+                          msg.sent ? "is-sent" : "is-pending"
+                        }`}
+                      >
+                        {msg.sent ? "Sent" : msg.approval_status || "Pending"}
+                      </span>
+                    </div>
+
+                    <p className="message-body">{msg.message}</p>
+
+                    <div className="summary-list message-meta-grid">
+                      <div>
+                        <span>Scheduled</span>
+                        <strong>
+                          {msg.date} at {msg.time}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>Created by</span>
+                        <strong>
+                          {msg.first_name} {msg.last_name}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="button-row">
+                      <button
+                        onClick={() => startEdit(msg)}
+                        className="primary-button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteMessage(msg.id)}
+                        className="danger-button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
-
-// 🔹 Shared styles
-const inputStyle = {
-  width: "100%",
-  padding: "10px 14px",
-  borderRadius: "8px",
-  border: "1px solid #ddd",
-  fontSize: "14px",
-  outline: "none",
-  transition: "border 0.2s",
-};
-
-const buttonPrimary = {
-  flex: 1,
-  padding: "10px 14px",
-  border: "none",
-  borderRadius: "8px",
-  background: "#007aff",
-  color: "white",
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-const buttonSecondary = {
-  flex: 1,
-  padding: "10px 14px",
-  border: "1px solid #ccc",
-  borderRadius: "8px",
-  background: "#f5f5f5",
-  color: "#333",
-  cursor: "pointer",
-};
-
-const buttonDanger = {
-  flex: 1,
-  padding: "10px 14px",
-  border: "none",
-  borderRadius: "8px",
-  background: "#d9534f",
-  color: "white",
-  fontWeight: 600,
-  cursor: "pointer",
-};

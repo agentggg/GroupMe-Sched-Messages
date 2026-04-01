@@ -1,344 +1,227 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom"; // only Link, no Router
+import { Link } from "react-router-dom";
 import Logout from "./Logout";
+import { API_BASE_URL } from "./api";
 
 export default function ScheduleMessage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [status, setStatus] = useState("Idle");
+  const [status, setStatus] = useState("Ready");
   const [dateSelection, setDateSelection] = useState("");
   const [timeSelection, setTimeSelection] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState("");
   const [textToSend, setTextToSend] = useState("");
-  const [username, setUsername] = useState('')
-  console.log("🚀 ~ ScheduleMessage ~ username:", username)
-  useEffect(()=>{
-      setUsername(localStorage.getItem('username'))
-    }, [username])
+  const [username, setUsername] = useState("");
+  const [groups, setGroups] = useState([]);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+  const [groupsError, setGroupsError] = useState("");
 
-  const groups = [
-      "Rise And Walk Ministry- Partners",
-      "Worship Team - Surrendered Hearts",
-      "Watchtower",
-      "RAW Public Forum",
-      "Test",
-      "Be RAW (online community)",
-      "Impact Team - Surrendered Hearts",
-      "Tech and Faith Forum",
-      "Spiritual Family (sons and daughters)",
-      "Tech & Faith - Software Engineering",
-      "RAW Leadership",
-      "Your Kingdom Come",
-      "Man-to-Man",
-      "RAW Productions",
-      "RAW Georgia",
-      "Tech & Faith - Network Group",
-      "Tech & Faith CompTIA A+",
-      "25:35 - Evangelism",
-      "Participant Hub"
-    ] 
-  // const token = process.env.REACT_APP_GROUPME_ID;
-  /*
-  This is the function that we will use to send the message to be
-  scheduled. I am using Django/python/Node as a backend to sched text messag
-  */
+  useEffect(() => {
+    setUsername(localStorage.getItem("username") || "");
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function fetchGroups() {
+      setGroupsLoading(true);
+      setGroupsError("");
+
+      try {
+        const response = await axios.get(`${API_BASE_URL}/groupme_groups`);
+        if (active) {
+          setGroups(Array.isArray(response.data) ? response.data : []);
+        }
+      } catch (error) {
+        if (active) {
+          setGroupsError("Unable to load GroupMe groups.");
+        }
+      } finally {
+        if (active) {
+          setGroupsLoading(false);
+        }
+      }
+    }
+
+    fetchGroups();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedGroup = useMemo(
+    () => groups.find((group) => group.group_id === selectedGroupId) || null,
+    [groups, selectedGroupId]
+  );
+
   async function sendMessage() {
     if (!selectedGroup) {
-      setStatus("⚠️ Please select a group");
+      setStatus("Please select a group.");
       return;
-      // this forces the user to always select a group, or else it will send an alert
     }
-    if (textToSend.length === 0) {
-      setStatus("⚠️ Please type a message");
+    if (!textToSend.trim()) {
+      setStatus("Please type a message.");
+      return;
+    }
+    if (!dateSelection || !timeSelection) {
+      setStatus("Please provide both a date and time.");
+      return;
+    }
+    if (!username) {
+      setStatus("Missing username. Please log in again.");
       return;
     }
 
-    // this forces the user to always place a message, or else it will send an alert
-    const url = `https://raw-agentofgod.pythonanywhere.com/scheduled_messages_list` // this is the base URL
-    // const url = `http://127.0.0.1:8000/scheduled_messages_list`;
-    const payload = {
-        message: textToSend,
-        username: username,
-        group_name: selectedGroup['group_name'],
-        date: dateSelection,
-        time: timeSelection
-    };
-    // this is the payload from the frontend that we will send to the backend
+    setStatus("Scheduling message...");
 
     try {
-      const res = await axios.post(url, payload)
-      if (typeof(res.data.id) == "number"){
-        setStatus('Successfully Scheudled Message')
-        setTextToSend('Successfully Scheudled Message')
-        alert("Successfully Scheudled Message")
-        return
+      const response = await axios.post(`${API_BASE_URL}/scheduled_messages_list`, {
+        message: textToSend.trim(),
+        username,
+        group_id: selectedGroup.group_id,
+        group_name: selectedGroup.group_name,
+        date: dateSelection,
+        time: timeSelection,
+      });
+
+      if (typeof response.data.id === "number") {
+        setStatus("Message scheduled successfully.");
+        setTextToSend("");
+        return;
       }
-      else{
-        setStatus('Failed to schedule')
-        console.log(res)
-        return
-      }
+
+      setStatus("Unexpected response from backend.");
     } catch (err) {
-      setStatus('Failed to schedule')
-      console.log("❌ Error sending message:", err);
-      return
+      setStatus(err.response?.data?.error || "Failed to schedule message.");
     }
   }
 
-    
-
   return (
-    <div
-      style={{
-        maxWidth: "600px",
-        margin: "auto",
-        padding: "16px",
-        fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif",
-      }}
-    >
-      {/* NAVBAR */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          backgroundColor: "#007acc",
-          color: "white",
-          position: "sticky",
-          top: 0,
-          zIndex: 1000,
-        }}
-      >
-        {/* Left: Brand */}
-        <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Tech & Faith</div>
-        <Logout />
-        {/* Hamburger (mobile only) */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            fontSize: "1.5rem",
-            cursor: "pointer",
-            display: "none",
-          }}
-          className="hamburger"
-        >
-          ☰
-        </button>
-
-        {/* Nav Links */}
-        <div
-          style={{ display: menuOpen ? "flex" : "" }}
-          className="nav-links"
-        >
-          <Link to="/" style={{ color: "white", textDecoration: "none" }}>
-            Home
+    <div className="app-shell">
+      <nav className="topbar">
+        <div>
+          <p className="eyebrow">Tech & Faith</p>
+          <h1 className="topbar-title">Schedule GroupMe messages</h1>
+        </div>
+        <div className="topbar-actions">
+          <Link to="/" className="nav-link active-link">
+            Scheduler
           </Link>
-          {username === "agentofgod" ? <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>
-            Messages
-          </Link> : <></>}
+          {username === "agentofgod" && (
+            <Link to="/messages" className="nav-link">
+              Messages
+            </Link>
+          )}
+          <Logout />
         </div>
       </nav>
 
-      {/* Status Banner */}
-      <p style={{ margin: 0, textAlign: "right", fontWeight: 500 }}>
-        Status: {status}
-      </p>
-
-      <h1
-        style={{
-          textAlign: "center",
-          fontSize: "20px",
-          fontWeight: 600,
-          marginBottom: "24px",
-        }}
-      >
-        📅 Schedule Your Message
-      </h1>
-
-      {/* DATE & TIME */}
-      <div style={{ marginBottom: "20px" }}>
-        <label style={{ display: "block", fontWeight: 500, marginBottom: "6px" }}>
-          Date
-        </label>
-        <input
-          type="date"
-          onChange={(e) => setDateSelection(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: "20px" }}>
-        <label style={{ display: "block", fontWeight: 500, marginBottom: "6px" }}>
-          Time
-        </label>
-        <input
-          type="time"
-          onChange={(e) => setTimeSelection(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
-        />
-      </div>
-
-      {/* CONFIRMATION */}
-      <div style={{ marginBottom: "20px", fontSize: "15px", color: "#555" }}>
-        {dateSelection && timeSelection ? (
-          <p style={{ color: "#28a745", fontWeight: 500 }}>
-            ✅ Your text will be sent at <br /> {dateSelection} {timeSelection}
-          </p>
-        ) : (
-          <p style={{ color: "#d9534f", fontWeight: 500 }}>
-            ‼️ Please provide a scheduled DATE and TIME
-          </p>
-        )}
-      </div>
-
-      {/* GROUP SELECTION */}
-      <div style={{ marginBottom: "20px" }}>
-        <label style={{ display: "block", fontWeight: 500, marginBottom: "6px" }}>
-          Select Group
-        </label>
-        <select
-          value={selectedGroup ? selectedGroup : ""}
-          onChange={(e) =>
-            setSelectedGroup(
-              groups.find((g) => g === e.target.value) || null
-            )
-          }
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
-        >
-          <option value="">-- Select a group --</option>
-          {groups.map((group) => {
-    return (<option key={group} value={group}>
-              {group}
-            </option>);
-          
-})}
-        </select>
-
-        {selectedGroup && (
-          <div style={{ marginTop: "8px", fontSize: "14px", color: "#666" }}>
-            ✅ Selected: <strong>{selectedGroup.group_name}</strong>        
+      <main className="content-grid">
+        <section className="panel panel-emphasis">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Create</p>
+              <h2>Schedule a new delivery</h2>
+            </div>
+            <span className="status-pill">{status}</span>
           </div>
-        )}
-      </div>
 
-      {/* MESSAGE BOX */}
-      <div style={{ marginBottom: "20px" }}>
-        <textarea
-          onChange={(e) => setTextToSend(e.target.value)}
-          value={textToSend}
-          style={{
-            width: "100%",
-            height: "120px",
-            padding: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "16px",
-            resize: "none",
-            fontSize: "16px",
-            lineHeight: 1.4,
-            boxShadow: "inset 0 1px 3px rgba(0,0,0,0.08)",
-            outline: "none",
-            background: "#f9f9f9",
-          }}
-          placeholder="Type your message..."
-        ></textarea>
-      </div>
+          <div className="form-grid two-up">
+            <label className="field">
+              <span>Date</span>
+              <input
+                type="date"
+                value={dateSelection}
+                onChange={(e) => setDateSelection(e.target.value)}
+                className="text-input"
+              />
+            </label>
 
-      {/* iMessage-style preview */}
-      {textToSend && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "20px",
-          }}
-        >
-          <p
-            style={{
-              background: "#007aff",
-              color: "white",
-              borderRadius: "20px",
-              padding: "12px 16px",
-              display: "inline-block",
-              maxWidth: "75%",
-              wordWrap: "break-word",
-              fontSize: "15px",
-            }}
-          >
-            {textToSend}
-          </p>
-        </div>
-      )}
+            <label className="field">
+              <span>Time</span>
+              <input
+                type="time"
+                value={timeSelection}
+                onChange={(e) => setTimeSelection(e.target.value)}
+                className="text-input"
+              />
+            </label>
+          </div>
 
-      {/* SUBMIT BUTTON */}
-      <button
-        onClick={()=>sendMessage()}
-        style={{
-          width: "100%",
-          padding: "14px",
-          border: "none",
-          borderRadius: "12px",
-          background: "#007aff",
-          color: "white",
-          fontSize: "16px",
-          fontWeight: 600,
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.opacity = 0.9)}
-        onMouseOut={(e) => (e.currentTarget.style.opacity = 1)}
-      >
-        🚀 Schedule Message
-      </button>
+          <label className="field">
+            <span>Select Group</span>
+            <select
+              value={selectedGroupId}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
+              className="text-input"
+              disabled={groupsLoading}
+            >
+              <option value="">
+                {groupsLoading ? "Loading groups..." : "-- Select a group --"}
+              </option>
+              {groups.map((group) => (
+                <option key={group.group_id} value={group.group_id}>
+                  {group.group_name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-      {/* Embedded CSS for navbar responsiveness */}
-      <style>{`
-        .nav-links {
-          display: flex;
-          gap: 20px;
-        }
-        .hamburger {
-          display: none !important;
-        }
-        @media (max-width: 768px) {
-          .nav-links {
-            display: none;
-            flex-direction: column;
-            background-color: #007acc;
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            padding: 10px;
-            border-radius: 6px;
-            gap: 10px;
-          }
-          .hamburger {
-            display: block !important;
-          }
-        }
-      `}</style>
+          {groupsError && <p className="form-error">{groupsError}</p>}
+
+          <label className="field">
+            <span>Message</span>
+            <textarea
+              onChange={(e) => setTextToSend(e.target.value)}
+              value={textToSend}
+              className="text-input text-area"
+              placeholder="Type your message..."
+            />
+          </label>
+
+          <button onClick={sendMessage} className="primary-button">
+            Schedule Message
+          </button>
+        </section>
+
+        <aside className="side-column">
+          <section className="panel">
+            <p className="eyebrow">Preview</p>
+            <h3>Delivery summary</h3>
+            <div className="summary-list">
+              <div>
+                <span>Signed in as</span>
+                <strong>{username || "Unknown user"}</strong>
+              </div>
+              <div>
+                <span>Selected group</span>
+                <strong>{selectedGroup?.group_name || "None selected"}</strong>
+              </div>
+              <div>
+                <span>Scheduled for</span>
+                <strong>
+                  {dateSelection && timeSelection
+                    ? `${dateSelection} at ${timeSelection}`
+                    : "Choose a date and time"}
+                </strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel">
+            <p className="eyebrow">Message</p>
+            <h3>Bubble preview</h3>
+            <div className="message-preview-shell">
+              {textToSend ? (
+                <p className="message-bubble">{textToSend}</p>
+              ) : (
+                <p className="placeholder-text">
+                  Your message preview will appear here as you type.
+                </p>
+              )}
+            </div>
+          </section>
+        </aside>
+      </main>
     </div>
   );
 }
