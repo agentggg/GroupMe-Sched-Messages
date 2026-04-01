@@ -5,8 +5,8 @@ import axios from 'axios'
 
 export default function Login() {
   const { setAuthenticated } = useContext(LoginContext);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("agentofgod");
+  const [password, setPassword] = useState("ciscocisco");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

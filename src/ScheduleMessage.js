@@ -8,51 +8,40 @@ export default function ScheduleMessage() {
   const [status, setStatus] = useState("Idle");
   const [dateSelection, setDateSelection] = useState("");
   const [timeSelection, setTimeSelection] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState("");
   const [textToSend, setTextToSend] = useState("");
-  const [groups, setGroups] = useState([]) 
-  const token = process.env.REACT_APP_GROUPME_ID;
-  /*
-  this is a useEffect that will run once the page is loaded
-  this will make an API call to the backend to get all the groupmes 
-  that the demo account is associated with
-  when the group is retrieved, it is retreived as an object
-  I just need the group name so I can pass it down as a value in 
-  the dropdown
-  */
-  useEffect(() => {
-    async function fetchGroups() {
-      try {
-        const res = await axios.get(
-          `https://api.groupme.com/v3/groups?token=${token}`
-        );
-        // the line above makes the API call to group server
-        const formattedGroups = res.data.response.map((eachItem) => ({
-        group_id: eachItem.group_id,
-        group_name: eachItem.name,
-      }));
-      // this takes the response, and loop through each iteration
-      // and then saves only 2 of the many values.
-      // it saves the group_id and the group_name
-        setGroups(formattedGroups)
-        // the useState value that will be passed down
-      } catch (err) {
-        console.log("❌ Error fetching groups:", err.response?.data || err.message);
-      }
-      // error handling
-    }
-    fetchGroups();
-  }, [token]); // this useEffect will run everytime the token is changed
+  const [username, setUsername] = useState('')
+  useEffect(()=>{
+      setUsername(localStorage.getItem('username'))
+    }, [username])
 
-  // Send message to selected group
-
-
+  const groups = [
+      "Rise And Walk Ministry- Partners",
+      "Worship Team - Surrendered Hearts",
+      "Watchtower",
+      "RAW Public Forum",
+      "Test",
+      "Be RAW (online community)",
+      "Impact Team - Surrendered Hearts",
+      "Tech and Faith Forum",
+      "Spiritual Family (sons and daughters)",
+      "Tech & Faith - Software Engineering",
+      "RAW Leadership",
+      "Your Kingdom Come",
+      "Man-to-Man",
+      "RAW Productions",
+      "RAW Georgia",
+      "Tech & Faith - Network Group",
+      "Tech & Faith CompTIA A+",
+      "25:35 - Evangelism",
+      "Participant Hub"
+    ] 
+  // const token = process.env.REACT_APP_GROUPME_ID;
   /*
   This is the function that we will use to send the message to be
   scheduled. I am using Django/python/Node as a backend to sched text messag
   */
   async function sendMessage() {
-
     if (!selectedGroup) {
       setStatus("⚠️ Please select a group");
       return;
@@ -64,17 +53,15 @@ export default function ScheduleMessage() {
     }
 
     // this forces the user to always place a message, or else it will send an alert
-    // const url = `https://raw-agentofgod.pythonanywhere.com/scheduled_messages_list` // this is the base URL
-    const url = `http://127.0.0.1:8000/scheduled_messages_list`;
+    const url = `https://raw-agentofgod.pythonanywhere.com/scheduled_messages_list` // this is the base URL
+    // const url = `http://127.0.0.1:8000/scheduled_messages_list`;
     const payload = {
         message: textToSend,
-        username: 1,
-        group_id: selectedGroup['group_id'],
+        username: username,
         group_name: selectedGroup['group_name'],
         date: dateSelection,
         time: timeSelection
     };
-    console.log("🚀 ~ sendMessage ~ payload:", payload)
     // this is the payload from the frontend that we will send to the backend
 
     try {
@@ -97,10 +84,8 @@ export default function ScheduleMessage() {
     }
   }
 
-    const [username, setUsername] = useState('')
-    useEffect(()=>{
-      setUsername(localStorage.getItem('username'))
-    }, [username])
+    
+
   return (
     <div
       style={{
@@ -228,10 +213,10 @@ export default function ScheduleMessage() {
           Select Group
         </label>
         <select
-          value={selectedGroup ? selectedGroup.group_id : ""}
+          value={selectedGroup ? selectedGroup : ""}
           onChange={(e) =>
             setSelectedGroup(
-              groups.find((g) => g.group_id === e.target.value) || null
+              groups.find((g) => g === e.target.value) || null
             )
           }
           style={{
@@ -244,8 +229,8 @@ export default function ScheduleMessage() {
         >
           <option value="">-- Select a group --</option>
           {groups.map((group) => {
-    return (<option key={group.group_id} value={group.group_id}>
-              {group.group_name}
+    return (<option key={group} value={group}>
+              {group}
             </option>);
           
 })}
