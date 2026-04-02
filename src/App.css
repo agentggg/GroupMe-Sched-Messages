@@ -64,6 +64,12 @@ textarea {
   padding: 40px;
 }
 
+.auth-intro {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
 .auth-form,
 .edit-form {
   display: grid;
@@ -91,6 +97,12 @@ textarea {
   color: var(--muted);
 }
 
+.auth-subtitle {
+  max-width: 34ch;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
 .eyebrow {
   margin: 0 0 10px;
   text-transform: uppercase;
@@ -108,6 +120,37 @@ textarea {
 
 .auth-help {
   align-content: start;
+}
+
+.auth-highlights {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-highlight-card {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #f7fafc;
+  line-height: 1.6;
+}
+
+.auth-form-copy {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.auth-form-copy h2,
+.auth-form-copy p {
+  margin: 0;
+}
+
+.auth-form-copy p {
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .auth-help-label,
@@ -280,6 +323,12 @@ textarea {
   color: white;
 }
 
+.primary-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+  transform: none;
+}
+
 .secondary-button {
   background: rgba(16, 42, 67, 0.1);
   color: var(--surface-accent);
@@ -396,6 +445,10 @@ textarea {
   }
 
   .auth-title {
+    max-width: none;
+  }
+
+  .auth-subtitle {
     max-width: none;
   }
 }

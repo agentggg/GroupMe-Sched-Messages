@@ -22,6 +22,6 @@ test("renders login screen when unauthenticated", () => {
   );
 
   expect(
-    screen.getByText(/sign in to schedule messages/i)
+    screen.getByText(/stay ahead of every groupme message/i)
   ).toBeInTheDocument();
 });

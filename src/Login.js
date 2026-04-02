@@ -9,6 +9,11 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const highlights = [
+    "Plan messages ahead without losing the natural feel of your chats.",
+    "Keep important reminders, updates, and check-ins on schedule.",
+    "Pick up where you left off with a clean, focused workspace.",
+  ];
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,7 +37,10 @@ export default function Login() {
       localStorage.setItem("last_name", response.data.last_name || "");
       setAuthenticated(true);
     } catch (err) {
-      setError(err.response?.data?.error || "Network error");
+      setError(
+        err.response?.data?.error ||
+          "We couldn't sign you in right now. Please try again."
+      );
       setLoading(false);
     }
   };
@@ -40,19 +48,30 @@ export default function Login() {
   return (
     <div className="auth-shell">
       <div className="auth-panel">
-        <div>
+        <div className="auth-intro">
           <p className="eyebrow">GroupMe Scheduler</p>
-          <h1 className="auth-title">Sign in to schedule messages</h1>
+          <h1 className="auth-title">Stay ahead of every GroupMe message.</h1>
           <p className="auth-subtitle">
-            This webview now uses the live backend contract, including the
-            dynamic GroupMe groups endpoint.
+            Schedule posts for the right moment, keep your groups informed, and
+            come back to a calmer inbox.
           </p>
+          <div className="auth-highlights">
+            {highlights.map((item) => (
+              <p key={item} className="auth-highlight-card">
+                {item}
+              </p>
+            ))}
+          </div>
         </div>
 
         <form onSubmit={handleLogin} className="auth-form">
+          <div className="auth-form-copy">
+            <h2>Sign in</h2>
+            <p>Use your GroupMe credentials to get to your scheduled messages.</p>
+          </div>
           <input
             type="text"
-            placeholder="Username"
+            placeholder="GroupMe username"
             className="text-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -70,19 +89,8 @@ export default function Login() {
           {error && <p className="form-error">{error}</p>}
 
           <button type="submit" className="primary-button" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
-
-          <div className="auth-help">
-            <div>
-              <span className="auth-help-label">Backend</span>
-              <strong>{API_BASE_URL}</strong>
-            </div>
-            <div>
-              <span className="auth-help-label">Experience</span>
-              <strong>Desktop-first and responsive</strong>
-            </div>
-          </div>
         </form>
       </div>
     </div>
